@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Book Listing</string>
+
+    <string name="test_desciption">This is just a long story to test the description in the description view.</string>
+    <string name="no_internet">No Internet Connection Available</string>
+    <string name="unable">Unable to retrieve book data</string>
+    <string name="search_input">Type in search value</string>
+
+</resources>
