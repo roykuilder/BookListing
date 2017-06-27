@@ -18,6 +18,8 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.R.attr.author;
+
 public class Utils {
 
     /**
@@ -128,6 +130,11 @@ public class Utils {
 
         try {
             JSONObject baseJsonResponse = new JSONObject(bookListJSON);
+
+            if (!baseJsonResponse.has("items")){
+                return null;
+            }
+
             JSONArray itemsArray = baseJsonResponse.getJSONArray("items");
             int length = itemsArray.length();
 
@@ -160,13 +167,13 @@ public class Utils {
 
                     // Try to get authors from author array. If none available set standard message.
                     ArrayList<String> author = new ArrayList<>();
-                    try {
+                    if (volumeInfo.has("authors")) {
                         JSONArray authorArray = volumeInfo.getJSONArray("authors");
                         int arrayLength = authorArray.length();
                         for (int c = 0; c < arrayLength; c++) {
                             author.add(authorArray.getString(c));
                         }
-                    } catch (JSONException c) {
+                    } else {
                         author.add("No Author available");
                     }
 

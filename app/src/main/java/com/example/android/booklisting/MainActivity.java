@@ -26,6 +26,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private ProgressBar loadingIndicator;
     private BookListAdapter adapter;
     private TextView emptyListView;
+    private boolean isConnected;
+    private NetworkInfo activeNetwork;
+    private ConnectivityManager cm;
+    private LoaderManager loaderManager;
 
     private static final String API_REQUEST_1 = "https://www.googleapis.com/books/v1/volumes?q=";
     private static final String API_REQUEST_2 = "&maxResults=10";
@@ -47,10 +51,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         bookListView.setAdapter(adapter);
 
         // Check for internet connectivity and store the boolean isConnected.
-        ConnectivityManager cm =
-                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        final boolean isConnected = activeNetwork != null &&
+        cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        activeNetwork = cm.getActiveNetworkInfo();
+        isConnected = activeNetwork != null &&
                 activeNetwork.isConnectedOrConnecting();
         // Inform user of no internet connection.
         if (!isConnected) {
@@ -66,14 +69,31 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                     url = makeURL(editText.getText().toString());
 
+                    // check for current network connection.
+                    activeNetwork = cm.getActiveNetworkInfo();
+                    isConnected = activeNetwork != null &&
+                            activeNetwork.isConnectedOrConnecting();
+
                     if (isConnected) {
-                        //Show the loading indicator and start loadermanager to handle the HTML
-                        //request.
+
+                        // If loaderManager is null get the loaderManager.
+                        if (loaderManager == null) {
+                            loaderManager = getLoaderManager();
+                        }
+
+                        // Update UI to show loading process.
                         loadingIndicator = (ProgressBar) findViewById(R.id.progress_bar);
-                        loadingIndicator.setVisibility(View.GONE);
-                        LoaderManager loaderManager = getLoaderManager();
-                        loaderManager.initLoader(1, null, MainActivity.this);
+                        loadingIndicator.setVisibility(View.VISIBLE);
+
+                        // Check if Loader 1 and create new one or restart Loader 1.
+                        if (loaderManager.getLoader(1) == null) {
+                            loaderManager.initLoader(1, null, MainActivity.this);
+                        } else {
+                            adapter.clear();
+                            loaderManager.restartLoader(1, null, MainActivity.this);
+                        }
                     } else {
+                        adapter.clear();
                         emptyListView.setText(R.string.no_internet);
                     }
                     return true;
